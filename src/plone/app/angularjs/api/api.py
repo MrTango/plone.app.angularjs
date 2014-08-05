@@ -1,12 +1,32 @@
 # -*- coding: utf-8 -*-
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from Products.Five.browser import BrowserView
-from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
-from zope.interface import implements
+from Products.Five.browser import BrowserView
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from plone.app.angularjs.interfaces import IRestApi
+from zope.component import getUtility
+from zope.component.hooks import getSite
+from zope.interface import implements
 
 import json
+
+
+class ApiDispatcherView(BrowserView):
+
+    def __call__(self, context=None, request=None):
+        api_params = self.request.get('api_params')
+        if api_params:
+            name = api_params[0]
+        else:
+            name = ''
+        api = getUtility(IRestApi)
+        if getattr(api, name, None):
+            return getattr(api, name)(self.context, self.request)
+        else:
+            return json.dumps({
+                'code': '404',
+                'message': "API method '%s' not found." % name,
+                'data': ''
+            })
 
 
 class ApiOverview(BrowserView):
@@ -30,7 +50,7 @@ class ApiOverview(BrowserView):
 class RestApi(object):
     implements(IRestApi)
 
-    def traversal(self, request):
+    def traversal(self, context, request):
         portal = getSite()
         path = request.get('path')
         if not path:
@@ -53,7 +73,7 @@ class RestApi(object):
             'text': text
         })
 
-    def top_navigation(self, request):
+    def top_navigation(self, context, request):
         portal = getSite()
         catalog = getToolByName(portal, 'portal_catalog')
         portal_path = '/'.join(portal.getPhysicalPath())
@@ -77,7 +97,6 @@ class RestApi(object):
                 }) if brain.exclude_from_nav is not True
             ]
         )
-
     def navigation_tree(self, request):
         portal = getSite()
         catalog = getToolByName(portal, 'portal_catalog')

@@ -1,5 +1,5 @@
-from zope.component import getUtility
-from plone.app.angularjs.interfaces import IRestApi
+# from zope.component import getUtility
+# from plone.app.angularjs.interfaces import IRestApi
 from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
 from ZPublisher.BaseRequest import DefaultPublishTraverse
 from zope.component import adapts
@@ -7,8 +7,7 @@ from plone.dexterity.interfaces import IDexterityItem
 from zope.publisher.interfaces.browser import IBrowserRequest
 from plone.app.angularjs.app.index import AngularAppRootView
 from plone.app.angularjs.api.traverser import IAPIRequest
-from plone.app.angularjs.api.api import ApiOverview
-import json
+from plone.app.angularjs.api.api import ApiDispatcherView
 
 
 class AngularAppPortalRootTraverser(DefaultPublishTraverse):
@@ -16,17 +15,17 @@ class AngularAppPortalRootTraverser(DefaultPublishTraverse):
 
     def publishTraverse(self, request, name):
         if IAPIRequest.providedBy(request):
-            if name == '' or name == 'folder_listing' or name == 'front-page':
-                return ApiOverview(self.context, self.request)
-            api = getUtility(IRestApi)
-            if getattr(api, name, None):
-                return getattr(api, name)(request)
-            else:
-                return json.dumps({
-                    'code': '404',
-                    'message': "API method '%s' not found." % name,
-                    'data': ''
-                })
+            parameters = []
+            while self.hasMoreNames():
+                if not name.startswith('@@'):
+                    parameters.append(name)
+                    name = self.nextName()
+
+            if not name.startswith('@@'):
+                # don't add the last param if it starts with '@@'
+                parameters.append(name)
+            request.set('api_params', parameters)
+            return ApiDispatcherView(self.context, request)
         is_front_page = request.URL.endswith('front-page')
         no_front_page = \
             request.URL.endswith('folder_listing') or \
@@ -40,6 +39,17 @@ class AngularAppPortalRootTraverser(DefaultPublishTraverse):
             request,
             name
         )
+
+
+    def nextName(self):
+        """ Pop the next name off of the traversal stack.
+        """
+        return self.request['TraversalRequestNameStack'].pop()
+
+    def hasMoreNames(self):
+        """ Are there names left for traversal?
+        """
+        return len(self.request['TraversalRequestNameStack']) > 0
 
 
 class AngularAppRedirectorTraverser(DefaultPublishTraverse):
