@@ -1,14 +1,29 @@
-<div>
-  <h1>REST API</h1>
-  <h2>Root Methods</h2>
-  <ul tal:repeat="method view/api_methods">
-    <li>
-      <a href="" tal:attributes="href method/url">
-        <span tal:content="method/id" />
-      </a>:
-      <span tal:content="method/description" />
-    </li>
-  </ul>
-  <h2>RESTish Methods</h2>
-  soon...
-</div>
+<html xm lns="http://www.w3.org/1999/xhtml"
+      xml:lang="en-US" lang="en-US"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="plone">
+<body>
+  <h1 class="documentFirstHeading">
+    REST API
+  </h1>
+
+  <p>
+    Above you can see all IRestApi providing views.
+  </p>
+
+  <div>
+    <h2>API Methods</h2>
+    <ul tal:repeat="method view/api_views">
+      <li>
+        <a href="" tal:attributes="href method/url">
+          <span tal:content="method/id" />
+        </a>:
+        <span tal:content="method/description" />
+      </li>
+    </ul>
+  </div>
+</body>
+</html>
+

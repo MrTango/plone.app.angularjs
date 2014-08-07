@@ -7,7 +7,7 @@ from plone.dexterity.interfaces import IDexterityItem
 from zope.publisher.interfaces.browser import IBrowserRequest
 from plone.app.angularjs.app.index import AngularAppRootView
 from plone.app.angularjs.api.traverser import IAPIRequest
-from plone.app.angularjs.api.api import ApiDispatcherView
+from plone.app.angularjs.api.api import ApiDispatcherView, ApiOverview
 
 
 class AngularAppPortalRootTraverser(DefaultPublishTraverse):
@@ -15,17 +15,20 @@ class AngularAppPortalRootTraverser(DefaultPublishTraverse):
 
     def publishTraverse(self, request, name):
         if IAPIRequest.providedBy(request):
-            parameters = []
-            while self.hasMoreNames():
-                if not name.startswith('@@'):
-                    parameters.append(name)
-                    name = self.nextName()
+            if name in ['', 'folder_listing', 'front-page']:
+                return ApiOverview(self.context, self.request)
+            else:
+                parameters = []
+                while self.hasMoreNames():
+                    if not name.startswith('@@'):
+                        parameters.append(name)
+                        name = self.nextName()
 
-            if not name.startswith('@@'):
-                # don't add the last param if it starts with '@@'
-                parameters.append(name)
-            request.set('api_params', parameters)
-            return ApiDispatcherView(self.context, request)
+                if not name.startswith('@@'):
+                    # don't add the last param if it starts with '@@'
+                    parameters.append(name)
+                request.set('api_params', parameters)
+                return ApiDispatcherView(self.context, request)
         is_front_page = request.URL.endswith('front-page')
         no_front_page = \
             request.URL.endswith('folder_listing') or \

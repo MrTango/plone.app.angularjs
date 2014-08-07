@@ -4,15 +4,35 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="plone.app.angularjs">
 
-  <utility
-    provides="plone.app.angularjs.interfaces.IRestApi"
-    factory=".api.RestApi" />
-
   <adapter
       factory=".traverser.APITraverser"
       name="api"
       />
 
   <adapter factory=".traverser.APIInnerTraverser" />
+
+  <browser:view
+	name="traversal"
+	for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+	class=".traversal.TraversalView"
+	permission="cmf.SetOwnPassword"
+	provides="plone.app.angularjs.interfaces.IRestApi"
+	/>
+
+  <browser:view
+	name="top_navigation"
+	for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+	class=".navigation.TopNavigation"
+	permission="cmf.SetOwnPassword"
+	provides="plone.app.angularjs.interfaces.IRestApi"
+	/>
+
+  <browser:view
+	name="navigation_tree"
+	for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+	class=".navigation.NavigationTree"
+	permission="cmf.SetOwnPassword"
+	provides="plone.app.angularjs.interfaces.IRestApi"
+	/>
 
 </configure>
